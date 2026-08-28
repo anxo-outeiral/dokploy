@@ -74,7 +74,7 @@ export const backupVolume = async (
 		volumeBackup.application?.serverId || volumeBackup.compose?.serverId;
 	const { VOLUME_BACKUPS_PATH, VOLUME_BACKUP_LOCK_PATH } = paths(!!serverId);
 	const s3AppName = getVolumeServiceAppName(volumeBackup);
-	const backupFileName = `${volumeName}-${getBackupTimestamp()}.tar`;
+	const backupFileName = `${volumeName}-${getBackupTimestamp()}.tar.zst`;
 	const bucketDestination = `${s3AppName}/${normalizeS3Path(prefix || "")}${backupFileName}`;
 	const rcloneFlags = getS3Credentials(destination);
 	const rcloneDestination = `:s3:${destination.bucket}/${bucketDestination}`;
@@ -93,7 +93,7 @@ export const backupVolume = async (
   -v ${volumeName}:/volume_data \
   -v ${volumeBackupPath}:/backup \
   ubuntu \
-  bash -c "cd /volume_data && tar cvf /backup/${backupFileName} ."
+  bash -c "apt-get update -qq && apt-get install -y -qq zstd > /dev/null 2>&1 && cd /volume_data && tar --zstd -cf /backup/${backupFileName} ."
   echo "Volume backup done ✅"
   `;
 
